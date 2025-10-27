@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <!--
+      This is an invisible HTML document used by the service worker.
+      It provides the necessary DOM environment (with Worker support)
+      to run the Tesseract.js OCR library.
+    -->
+
+    <!-- First, load the Tesseract.js library from our local files. -->
+    <script src="/lib/tesseract.min.js"></script>
+
+    <!-- Then, load our script that will use it. -->
+    <script src="offscreen.js"></script>
+  </body>
+</html>

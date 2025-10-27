@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TransLearn Panel</title>
+  <meta charset="UTF-8">
+  <style>
+    :root {
+      --border-color: #e0e0e0;
+      --accent-color: #1a73e8;
+      --background-color: #f8f9fa;
+      --verb-color: #d93025;
+      --noun-color: #1a73e8;
+      --adjective-color: #1e8e3e;
+      --adverb-color: #f9ab00;
+      --other-color: #5f6368;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 12px;
+      font-size: 14px;
+      color: #202124;
+    }
+
+    #original-text-container p,
+    #translated-text-container p {
+      margin-bottom: 0.75em; /* Creates a visual space after each paragraph */
+    }
+
+    .tab-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 12px;
+    }
+    .tab-button {
+      padding: 8px 16px;
+      cursor: pointer;
+      border: none;
+      background-color: transparent;
+      border-bottom: 2px solid transparent;
+      font-size: 14px;
+    }
+    .tab-button.active {
+      border-bottom-color: var(--accent-color);
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+    .tab-content {
+      display: none; /* Hide all content by default */
+    }
+    .tab-content.active {
+      display: block; /* Show only the active content */
+    }
+    #translate-content .original-text,
+    #translate-content .translated-text {
+      padding: 8px;
+      background-color: var(--background-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      margin-bottom: 8px;
+      white-space: pre-wrap; /* Preserve line breaks */
+    }
+    h3 {
+      margin-top: 0;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #5f6368;
+    }
+    .ocr-button {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-color);
+  background-color: transparent;
+  border: 1px solid var(--accent-color);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.ocr-button:hover {
+  background-color: #f0f6ff;
+}
+.language-selector {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 4px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 12px;
+    }
+    .lang-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .lang-group label {
+      font-size: 13px;
+      color: #5f6368;
+    }
+    .lang-group select {
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 13px;
+    }
+    .title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.lang-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  color: #5f6368;
+  text-transform: uppercase;
+}
+.notification {
+  font-size: 13px;
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  background-color: #fffbe6; /* A light yellow */
+  border: 1px solid #fdd663; /* A gold/yellow */
+  display: none; /* Hidden by default */
+}
+#vocabulary-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Increased gap between cards */
+}
+
+.vocab-card {
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  /* display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px; */
+  transition: background-color 0.2s ease-in-out;
+  cursor: pointer;
+}
+.vocab-card:hover {
+  background-color: #f8f9fa; /* A subtle hover effect */
+}
+
+.vocab-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vocab-word-details {
+  display: flex;
+  flex-direction: column;
+}
+.vocab-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vocab-word {
+  font-weight: 600;
+  font-size: 16px;
+  color: #202124;
+}
+
+.vocab-lemma {
+  font-size: 12px;
+  color: #5f6368;
+  font-style: italic;
+}
+
+.vocab-pos-tag {
+  font-size: 11px;
+  font-weight: 700; /* Bolder for text-only */
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1.5px solid; /* Give it a border */
+  text-transform: uppercase;
+}
+
+.vocab-details-content {
+  display: none; /* Hidden by default */
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid var(--border-color);
+  font-size: 13px;
+  line-height: 1.6;
+  color: #3c4043;
+}
+
+/* Style for when the card is expanded */
+.vocab-card.expanded .vocab-details-content {
+  display: block;
+}
+
+/* Styles for the content inside the deep dive */
+.vocab-details-content h5 {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #5f6368;
+  margin: 8px 0 4px 0;
+}
+.vocab-details-content ul {
+  padding-left: 18px;
+  margin: 0;
+}
+.vocab-details-content .example-sentence {
+  font-style: italic;
+}
+.vocab-details-content .example-translation {
+  color: #5f6368;
+}
+
+/* Color coding for POS tags (now text and border color) */
+.pos-verb { color: var(--verb-color); border-color: var(--verb-color); }
+.pos-noun { color: var(--noun-color); border-color: var(--noun-color); }
+.pos-adjective { color: var(--adjective-color); border-color: var(--adjective-color); }
+.pos-adverb { color: var(--adverb-color); border-color: var(--adverb-color); }
+.pos-other { color: var(--other-color); border-color: var(--other-color); }
+
+.vocab-translation {
+  font-size: 15px;
+  font-weight: 400; /* Regular weight */
+  color: #202124;   /* Black color */
+  text-align: right;
+  flex-shrink: 0; /* Prevent translation from wrapping too early */
+}
+.stream-container {
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 8px;
+  white-space: pre-wrap; /* Allows text to wrap */
+  font-family: monospace;
+  font-size: 13px;
+  color: #5f6368;
+  margin-bottom: 12px;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filter-button {
+  background-color: transparent;
+  border: 1.5px solid var(--border-color);
+  color: #5f6368;
+  border-radius: 16px; /* Pill shape */
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.1s ease-in-out;
+}
+
+.filter-button.active {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #fff;
+}
+
+.simplify-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.simplify-controls label {
+  font-size: 13px;
+  color: #5f6368;
+}
+.simplify-controls select {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 13px;
+}
+.text-display-area {
+  margin-bottom: 12px;
+}
+.text-display-area h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #5f6368;
+  margin: 0 0 4px 0;
+}
+.text-display-area p {
+  margin: 0;
+  padding: 8px;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.simplify-method-toggle {
+  display: flex;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+}
+.simplify-method-toggle input {
+  display: none;
+}
+.simplify-method-toggle label {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #5f6368;
+}
+.simplify-method-toggle input:checked + label {
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  color: var(--accent-color);
+}
+
+.action-button {
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background-color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.action-button:hover {
+  opacity: 0.9;
+}
+.vocab-controls {
+  margin-bottom: 12px;
+}
+
+#overlay-trigger-btn {
+  margin-bottom: 10px;
+}
+
+.mode-toggle-control {
+      display: flex;
+      align-items: center;
+      gap: 8px; /* Space between icon and switch */
+    }
+    .mode-toggle-control svg {
+      stroke: #5f6368;
+    }
+    /* The .toggle-switch and .slider styles are the same as before, so keep them */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 34px;
+      height: 20px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 20px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: var(--accent-color);
+    }
+    input:checked + .slider:before {
+      transform: translateX(14px);
+    }
+
+    .panel-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column; /* Stack items vertically */
+      gap: 12px; /* Add space between the rows */
+    }
+
+    /* --- NEW styles for the rows --- */
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* --- MODIFY the .lang-group style for better alignment --- */
+    .lang-group {
+      display: flex;
+      align-items: center;
+      gap: 8px; /* Increased gap for better spacing */
+    }
+    .lang-group label {
+      font-size: 13px;
+      color: #5f6368;
+      font-weight: 500;
+    }
+
+    /* --- The .mode-toggle-control styles are mostly the same --- */
+    .mode-toggle-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mode-toggle-control .label { /* NEW: Style for the text label */
+      font-size: 13px;
+      color: #3c4043;
+      font-weight: 500;
+    }
+    .mode-toggle-control svg {
+      stroke: #5f6368;
+    }
+
+    .translearn-highlight {
+  background-color: rgba(255, 229, 102, 0.6); /* A pleasant yellow highlight */
+  border-bottom: 2px solid rgba(255, 196, 0, 0.7);
+  border-radius: 3px;
+  cursor: pointer; /* Indicates it's clickable */
+  transition: background-color 0.2s ease;
+}
+.translearn-highlight:hover {
+  background-color: rgba(255, 229, 102, 0.9); /* Darken on hover */
+}
+
+#vocab-status-container {
+      display: none; /* Hidden by default */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 12px;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #5f6368;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e0e0e0;
+      border-top-color: var(--accent-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .checkmark svg {
+      stroke: #1e8e3e; /* Green */
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #saved-words-content.active {
+      display: flex;
+      flex-direction: column;
+    }
+    #saved-words-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #saved-words-filters {
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .save-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.save-btn:hover {
+  background-color: #e8eaed;
+}
+.save-btn svg {
+  stroke: #5f6368;
+}
+.save-btn:disabled svg {
+  fill: var(--accent-color);
+  stroke: var(--accent-color);
+}
+    
+  </style>
+</head>
+<body>
+  
+
+  <div class="panel-header">
+    <!-- Row 1: Language Selectors -->
+    <div class="header-row">
+      <div class="lang-group">
+        <label for="source-lang-select">From:</label>
+        <select id="source-lang-select"></select>
+      </div>
+      <div class="lang-group">
+        <label for="target-lang-select">To:</label>
+        <select id="target-lang-select"></select>
+      </div>
+    </div>
+    <!-- Row 2: Mode Toggle -->
+    <div class="header-row">
+      <div id="mode-toggle-control" class="mode-toggle-control">
+        <!-- THE NEW, BETTER "LAYERS" ICON -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span class="label">Inline Translation</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="mode-toggle-switch">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+  
+
+  <button id="ocr-mode-button" class="ocr-button">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+      <path d="M3 3v6h2V5h4V3H3zm16 0h-6v2h4v4h2V3zM9 13v2h6v-2H9zm-6 8v-6h2v4h4v2H3zm16 0h-6v-2h4v-4h2v6z"/>
+    </svg>
+    <span>Select Area to Read</span>
+  </button>
+
+  <!-- Navigation for the tabs -->
+  <nav class="tab-nav">
+    <button class="tab-button active" data-tab="translate">Translate</button>
+    <button class="tab-button" data-tab="vocabulary">Vocabulary</button>
+    <button class="tab-button" data-tab="saved-words">Saved Words</button>
+    <!-- <button class="tab-button" data-tab="simplify">Simplify</button> -->
+  </nav>
+
+  <!-- Content for the "Translate" tab -->
+  <div id="translate-content" class="tab-content active">
+    <div class="title-bar">
+      <h3>Original</h3>
+      
+      <span id="detected-lang-badge" class="lang-badge"></span>
+    </div>
+    <div id="original-text-container" class="original-text">
+      Select text on the page to begin.
+    </div>
+    <div id="notification-container" class="notification"></div>
+    <div class="title-bar">
+    <h3>Translation</h3>
+    <button id="overlay-trigger-btn" class="action-button" title="Show translation on the page">Overlay</button>
+  </div>
+    <div id="translated-text-container" class="translated-text">
+      ...
+    </div>
+  </div>
+
+  <!-- Content for the "Vocabulary" tab -->
+  <div id="vocabulary-content" class="tab-content">
+    <!-- <div class="vocab-controls">
+      <button id="get-vocab-btn" class="action-button">Analyze Vocabulary</button>
+    </div> -->
+    <div id="vocab-filter-bar" class="filter-bar">
+      <!-- Buttons will be dynamically added here by JavaScript -->
+    </div>
+    <!-- <div id="vocab-stream-wrapper">
+      <h4>Raw AI Response (Streaming...)</h4>
+      <pre id="vocab-stream-container" class="stream-container"></pre>
+    </div> -->
+    <div id="vocab-status-container"></div>
+    <!-- This container will be populated by JavaScript -->
+    <div id="vocabulary-list-container">
+      <!-- <p>Click "Analyze Vocabulary" to see a word breakdown.</p> -->
+    </div>
+  </div>
+
+  <div id="saved-words-content" class="tab-content">
+    <div id="saved-words-filters">
+      <!-- Language filters will be added here by JavaScript -->
+    </div>
+    <div id="saved-words-list-container">
+      <!-- Saved word cards will be added here by JavaScript -->
+      <p>You haven't saved any words yet.</p>
+    </div>
+  </div>
+
+  
+
+  <!-- Content for the "Simplify" tab -->
+  <div id="simplify-content" class="tab-content">
+    
+    <div class="simplify-controls">
+      <label for="cefr-level-select">Simplify to Level:</label>
+      <select id="cefr-level-select">
+        <option value="A1">A1 (Beginner)</option>
+        <option value="A2">A2 (Elementary)</option>
+        <option value="B1" selected>B1 (Intermediate)</option>
+        <option value="B2">B2 (Upper-Intermediate)</option>
+        <option value="C1">C1 (Advanced)</option>
+      </select>
+      <button id="simplify-trigger-btn" class="action-button">Simplify</button>
+    </div>
+  
+    <div class="text-display-area">
+      <h4>Original Text</h4>
+      <p id="simplify-original-text">Select a sentence to see a simplified version.</p>
+    </div>
+  
+    <div class="text-display-area">
+      <h4>Simplified Version</h4>
+      <p id="simplified-text-result">...</p>
+    </div>
+  </div>
+
+  
+
+  <!-- Link our JavaScript file -->
+  <script src="/lib/marked.min.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

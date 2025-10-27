@@ -41,7 +41,7 @@ TransLearn uses **Chrome’s Built-in AI** to provide translations, vocabulary a
 
 **Privacy:** All AI processing is local. Your data never leaves your machine.
 
-**Screenshot:** assets/screenshot.jpg 
+**Screenshot:** (assets/screenshot.jpg)
 
 **Demo:** 
 
